@@ -1,0 +1,19 @@
+{
+  "welcomeMessage": "Welcome to the 2026 season. Pick your games, climb the board, and let's see who calls it best this year.",
+  "contestLink": {
+    "label": "CONTEST LINK",
+    "url": "https://www.officefootballpool.com/pools.cfm?poolid=115288&p=2&pwd=ot10ot"
+  },
+  "hanksAnalytics": {
+    "label": "HANKS ANALYTICS",
+    "images": []
+  },
+  "registration": {
+    "label": "REGISTRATION INFO",
+    "url": "registration.html"
+  },
+  "rosterSpreadsheet": {
+    "label": "ROSTER SPREADSHEET",
+    "url": "https://docs.google.com/spreadsheets/d/1P4jFbt6zRuIPSlkxlene9NPmkZ51FDVmYlAcBjgHP2E/edit?usp=sharing"
+  }
+}

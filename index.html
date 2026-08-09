@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>2026 FEPO Football Handicapping Challenge</title>
+<meta name="theme-color" content="#081420">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:            #071019;
+    --bg-elev:       #0d1f2e;
+    --bg-elev-2:     #112838;
+    --teal:          #17C9B2;
+    --teal-soft:     #0E8F81;
+    --blue:          #4FC3F7;
+    --blue-deep:     #1E6C99;
+    --text:          #E8F5F3;
+    --text-muted:    #79A0AE;
+    --hairline:      rgba(79,195,247,0.16);
+    --glow-teal:     rgba(23,201,178,0.35);
+    --glow-blue:     rgba(79,195,247,0.30);
+    --radius:        16px;
+    --max-w:         640px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body{
+    min-height:100vh;
+    background-image:
+      /* faint yard-line hash pattern, purely atmospheric */
+      repeating-linear-gradient(
+        0deg,
+        rgba(79,195,247,0.035) 0px,
+        rgba(79,195,247,0.035) 1px,
+        transparent 1px,
+        transparent 88px
+      ),
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(23,201,178,0.14), transparent 60%);
+    background-color:var(--bg);
+  }
+
+  .wrap{
+    max-width:var(--max-w);
+    margin:0 auto;
+    padding:0 20px 56px;
+  }
+
+  /* ---------- Title bar ---------- */
+  .titlebar{
+    padding:44px 20px 32px;
+    text-align:center;
+    border-bottom:1px solid var(--hairline);
+    background:
+      linear-gradient(180deg, rgba(23,201,178,0.10), transparent 70%);
+  }
+
+  .eyebrow{
+    margin:0 0 10px;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    letter-spacing:0.32em;
+    font-size:12px;
+    color:var(--teal);
+    text-transform:uppercase;
+  }
+
+  h1{
+    margin:0 0 16px;
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    letter-spacing:0.01em;
+    text-transform:uppercase;
+    font-size:clamp(28px, 7vw, 42px);
+    line-height:1.08;
+    color:var(--text);
+    text-shadow:0 0 24px var(--glow-teal);
+  }
+
+  h1 .accent{ color:var(--blue); }
+
+  .welcome{
+    margin:0 auto;
+    max-width:46ch;
+    font-size:15.5px;
+    line-height:1.55;
+    color:var(--text-muted);
+  }
+
+  /* ---------- Button stack ---------- */
+  .stack{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    padding-top:28px;
+  }
+
+  /* ---------- Announcement panel ---------- */
+  .announcement{
+    background:linear-gradient(155deg, #EAFBF8, #DCF3EF);
+    color:#0B2430;
+    border-radius:var(--radius);
+    padding:24px 26px;
+    text-align:center;
+    border:1px solid rgba(11,36,48,0.08);
+    box-shadow:0 0 30px rgba(23,201,178,0.12);
+  }
+
+  .announcement h2{
+    margin:0 0 12px;
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    font-size:19px;
+    color:#0B2430;
+  }
+
+  .announcement hr{
+    border:none;
+    border-top:1px solid rgba(11,36,48,0.20);
+    width:64px;
+    margin:0 auto 16px;
+  }
+
+  .announcement p{
+    margin:0 0 12px;
+    font-size:14.5px;
+    line-height:1.6;
+    color:#2B4956;
+  }
+
+  .announcement p:last-child{ margin-bottom:0; }
+
+  .btn{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    width:100%;
+    padding:22px 24px;
+    border-radius:var(--radius);
+    background:linear-gradient(155deg, var(--bg-elev-2), var(--bg-elev));
+    border:1px solid var(--hairline);
+    text-decoration:none;
+    color:var(--text);
+    overflow:hidden;
+    isolation:isolate;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .15s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+
+  /* floodlight sweep — the one signature motion on this page */
+  .btn::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    z-index:-1;
+    background:linear-gradient(100deg, transparent 30%, var(--sheen, rgba(79,195,247,0.28)) 50%, transparent 70%);
+    background-size:220% 220%;
+    background-position:120% 0%;
+    opacity:0;
+    transition:opacity .25s ease, background-position .6s ease;
+  }
+
+  .btn:hover,
+  .btn:focus-visible,
+  .btn:active{
+    transform:translateY(-1px);
+  }
+
+  .btn:hover::before,
+  .btn:focus-visible::before{
+    opacity:1;
+    background-position:-20% 0%;
+  }
+
+  .btn:focus-visible{
+    outline:2px solid var(--blue);
+    outline-offset:3px;
+  }
+
+  .btn-icon{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:44px;
+    height:44px;
+    flex:0 0 auto;
+    border-radius:11px;
+    font-size:19px;
+  }
+
+  .btn-text{ flex:1 1 auto; min-width:0; }
+
+  .btn-label{
+    display:block;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    font-size:17px;
+  }
+
+  .btn-sub{
+    display:block;
+    margin-top:3px;
+    font-size:13px;
+    color:var(--text-muted);
+  }
+
+  .btn-arrow{
+    flex:0 0 auto;
+    font-size:18px;
+    color:var(--text-muted);
+    transition:transform .2s ease;
+  }
+  .btn:hover .btn-arrow{ transform:translateX(3px); color:var(--blue); }
+
+  /* per-button hue */
+  .btn-contest{ border-color:rgba(23,201,178,0.35); --sheen: rgba(23,201,178,0.30); }
+  .btn-contest .btn-icon{ background:rgba(23,201,178,0.14); color:var(--teal); }
+  .btn-contest .btn-label{ color:var(--teal); }
+
+  .btn-analytics{ border-color:rgba(79,195,247,0.30); --sheen: rgba(79,195,247,0.28); }
+  .btn-analytics .btn-icon{ background:rgba(79,195,247,0.14); color:var(--blue); }
+  .btn-analytics .btn-label{ color:var(--blue); }
+
+  .btn-registration{ border-color:rgba(126,168,224,0.28); --sheen: rgba(126,168,224,0.24); }
+  .btn-registration .btn-icon{ background:rgba(126,168,224,0.12); color:#9FC6E8; }
+  .btn-registration .btn-label{ color:#BFE0F5; }
+
+  .btn-roster{ border-color:rgba(34,211,238,0.30); --sheen: rgba(34,211,238,0.28); }
+  .btn-roster .btn-icon{ background:rgba(34,211,238,0.14); color:#22D3EE; }
+  .btn-roster .btn-label{ color:#22D3EE; }
+
+  footer{
+    padding:32px 20px 0;
+    text-align:center;
+    font-size:12px;
+    color:var(--text-muted);
+    letter-spacing:0.02em;
+  }
+
+  footer a{ color:var(--teal); text-decoration:none; }
+
+  @media (min-width:720px){
+    .titlebar{ padding-top:64px; }
+    .btn{ padding:26px 28px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .btn, .btn::before, .btn-arrow{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="titlebar">
+    <p class="eyebrow">2026 Season</p>
+    <h1>FEPO Football<br><span class="accent">Handicapping Challenge</span></h1>
+    <p class="welcome" id="welcomeText">Loading…</p>
+  </div>
+
+  <div class="wrap">
+    <nav class="stack" aria-label="Main">
+
+      <div class="announcement">
+        <h2>Important Info:</h2>
+        <hr>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse potenti. Integer euismod, nisl eget aliquam ultricies, nunc nisl aliquet nunc, eget aliquam nisl nunc eget nunc.</p>
+        <p>Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada. Donec ac odio tempor orci dapibus ultrices in iaculis nunc sed augue lacus.</p>
+      </div>
+
+      <a class="btn btn-contest" id="btnContest" href="#" target="_blank" rel="noopener">
+        <span class="btn-icon">🏈</span>
+        <span class="btn-text">
+          <span class="btn-label" id="btnContestLabel">Contest Link</span>
+          <span class="btn-sub">Enter your weekly picks</span>
+        </span>
+        <span class="btn-arrow">→</span>
+      </a>
+
+      <a class="btn btn-analytics" id="btnAnalytics" href="hanks-analytics.html">
+        <span class="btn-icon">📊</span>
+        <span class="btn-text">
+          <span class="btn-label" id="btnAnalyticsLabel">Hanks Analytics</span>
+          <span class="btn-sub">Charts &amp; breakdowns, updated weekly</span>
+        </span>
+        <span class="btn-arrow">→</span>
+      </a>
+
+      <a class="btn btn-registration" id="btnRegistration" href="registration.html">
+        <span class="btn-icon">📝</span>
+        <span class="btn-text">
+          <span class="btn-label" id="btnRegistrationLabel">Registration Info</span>
+          <span class="btn-sub">Rules, deadlines &amp; how to join</span>
+        </span>
+        <span class="btn-arrow">→</span>
+      </a>
+
+      <a class="btn btn-roster" id="btnRoster" href="https://docs.google.com/spreadsheets/d/1P4jFbt6zRuIPSlkxlene9NPmkZ51FDVmYlAcBjgHP2E/edit?usp=sharing" target="_blank" rel="noopener">
+        <span class="btn-icon">📋</span>
+        <span class="btn-text">
+          <span class="btn-label" id="btnRosterLabel">Roster Spreadsheet</span>
+          <span class="btn-sub">View the full participant roster</span>
+        </span>
+        <span class="btn-arrow">→</span>
+      </a>
+
+    </nav>
+
+    <footer>
+      2026 FEPO Football Handicapping Challenge
+    </footer>
+  </div>
+
+<script>
+  // Default content (used if content.json can't be fetched — e.g. in an offline preview).
+  // On a real Netlify deploy, content.json is fetched fresh so weekly updates never
+  // require touching this file.
+  const DEFAULT_CONTENT = {
+    welcomeMessage: "Welcome to the 2026 season. Pick your games, climb the board, and let's see who calls it best this year.",
+    contestLink: {
+      label: "Contest Link",
+      url: "https://www.officefootballpool.com/pools.cfm?poolid=115288&p=2&pwd=ot10ot"
+    },
+    hanksAnalytics: { label: "Hanks Analytics" },
+    registration: { label: "Registration Info", url: "registration.html" },
+    rosterSpreadsheet: {
+      label: "Roster Spreadsheet",
+      url: "https://docs.google.com/spreadsheets/d/1P4jFbt6zRuIPSlkxlene9NPmkZ51FDVmYlAcBjgHP2E/edit?usp=sharing"
+    }
+  };
+
+  async function loadContent(){
+    let data = DEFAULT_CONTENT;
+    try{
+      const res = await fetch('content.json', { cache: 'no-store' });
+      if(res.ok) data = await res.json();
+    }catch(e){
+      // fall back to defaults silently — expected in sandboxed previews
+    }
+
+    document.getElementById('welcomeText').textContent = data.welcomeMessage || DEFAULT_CONTENT.welcomeMessage;
+
+    const contest = data.contestLink || DEFAULT_CONTENT.contestLink;
+    document.getElementById('btnContest').href = contest.url;
+    document.getElementById('btnContestLabel').textContent = contest.label || 'Contest Link';
+
+    const analytics = data.hanksAnalytics || DEFAULT_CONTENT.hanksAnalytics;
+    document.getElementById('btnAnalyticsLabel').textContent = analytics.label || 'Hanks Analytics';
+
+    const reg = data.registration || DEFAULT_CONTENT.registration;
+    document.getElementById('btnRegistration').href = reg.url || 'registration.html';
+    document.getElementById('btnRegistrationLabel').textContent = reg.label || 'Registration Info';
+
+    const roster = data.rosterSpreadsheet || DEFAULT_CONTENT.rosterSpreadsheet;
+    document.getElementById('btnRoster').href = roster.url;
+    document.getElementById('btnRosterLabel').textContent = roster.label || 'Roster Spreadsheet';
+  }
+
+  loadContent();
+</script>
+
+</body>
+</html>
