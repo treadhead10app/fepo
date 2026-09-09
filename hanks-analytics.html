@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hanks Analytics — FEPO Football Handicapping Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#071019; --bg-elev:#0d1f2e; --teal:#17C9B2; --blue:#4FC3F7;
+    --text:#E8F5F3; --text-muted:#79A0AE; --hairline:rgba(79,195,247,0.16);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+  .wrap{max-width:820px;margin:0 auto;padding:36px 20px 60px}
+  a.back{color:var(--teal);text-decoration:none;font-size:14px}
+  h1{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.02em;color:var(--blue);font-size:clamp(24px,6vw,32px);margin:18px 0 8px}
+  p.sub{color:var(--text-muted);margin:0 0 28px;font-size:15px}
+  .grid{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:640px){ .grid{grid-template-columns:1fr 1fr} }
+  .card{border:1px solid var(--hairline);border-radius:14px;overflow:hidden;background:var(--bg-elev)}
+  .card img{width:100%;display:block}
+  .card-label{
+    padding:10px 14px;font-size:13px;color:var(--text-muted);
+    border-top:1px solid var(--hairline);
+  }
+  .placeholder{
+    display:flex;align-items:center;justify-content:center;
+    aspect-ratio:16/10;color:var(--text-muted);font-size:13px;
+    background:
+      repeating-linear-gradient(135deg, rgba(79,195,247,0.04) 0 10px, transparent 10px 20px);
+    text-align:center;padding:20px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="index.html">← Back</a>
+    <h1>Hanks Analytics</h1>
+    <p class="sub">Weekly charts and breakdowns from Hank, updated every week.</p>
+    <div class="grid" id="gallery"></div>
+  </div>
+<script>
+  // Fixed manifest of chart slots. Hank reuses the same filename for a given
+  // chart every week (e.g. tread_11_streaks.png always holds the "streaks"
+  // chart) -- so the weekly routine is just: overwrite these files in the
+  // analytics/ folder with the new week's images. No HTML changes needed
+  // unless a chart is added, removed, or renumbered.
+  const CHARTS = [
+    { file: "analytics/tread_1_standings_50.png",              label: "#1 — Standings ($50)" },
+    { file: "analytics/tread_1_standings_200.png",              label: "#1 — Standings ($200)" },
+    { file: "analytics/tread_1_standings_500.png",              label: "#1 — Standings ($500)" },
+    { file: "analytics/tread_2_categories_profit.png",          label: "#2 — Categories Profit" },
+    { file: "analytics/tread_3_pick_selection.png",             label: "#3 — Pick Selection" },
+    { file: "analytics/tread_4_scatter_total-spread.png",       label: "#4 — Scatter: Total vs Spread" },
+    { file: "analytics/tread_5_scatter_nfl-cfb.png",            label: "#5 — Scatter: NFL vs CFB" },
+    { file: "analytics/tread_6_league_weekly.png",              label: "#6 — League Weekly" },
+    { file: "analytics/tread_7_categories_league.png",          label: "#7 — Categories (League)" },
+    { file: "analytics/tread_8_common_picks.png",               label: "#8 — Common Picks" },
+    { file: "analytics/tread_9_familiar_team.png",              label: "#9 — Familiar Team" },
+    { file: "analytics/tread_10_conf_profit.png",               label: "#10 — Confidence vs Profit" },
+    { file: "analytics/tread_11_streaks.png",                   label: "#11 — Streaks" },
+    { file: "analytics/tread_12_perfect_weeks.png",              label: "#12 — Perfect Weeks" },
+    { file: "analytics/tread_14_cover_margin.png",               label: "#14 — Cover Margin" },
+    { file: "analytics/tread_15_close_calls.png",                label: "#15 — Close Calls" },
+    { file: "analytics/tread_16_worst_picks.png",                label: "#16 — Worst Picks" },
+    { file: "analytics/tread_17_past_x_weeks.png",               label: "#17 — Past X Weeks" },
+    { file: "analytics/tread_18_weekday_profit.png",             label: "#18 — Weekday Profit" },
+    { file: "analytics/tread_22_proportions.png",                label: "#22 — Proportions" },
+    { file: "analytics/tread_23_nfl_cfb.png",                    label: "#23 — NFL vs CFB" },
+    { file: "analytics/tread_24_leaguewide_vig.png",             label: "#24 — League-wide Vig" }
+  ];
+
+  const gallery = document.getElementById('gallery');
+
+  CHARTS.forEach(chart => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const img = document.createElement('img');
+    img.src = chart.file;
+    img.alt = chart.label;
+    img.onerror = function(){
+      // Chart not uploaded yet this week -- swap in a clean placeholder
+      // instead of the browser's broken-image icon.
+      const placeholder = document.createElement('div');
+      placeholder.className = 'placeholder';
+      placeholder.textContent = chart.label + ' — not posted yet';
+      img.replaceWith(placeholder);
+    };
+    card.appendChild(img);
+
+    const label = document.createElement('div');
+    label.className = 'card-label';
+    label.textContent = chart.label;
+    card.appendChild(label);
+
+    gallery.appendChild(card);
+  });
+</script>
+</body>
+</html>

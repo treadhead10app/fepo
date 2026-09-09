@@ -247,6 +247,10 @@
   .btn-roster .btn-icon{ background:rgba(34,211,238,0.14); color:#22D3EE; }
   .btn-roster .btn-label{ color:#22D3EE; }
 
+  .btn-standings{ border-color:rgba(14,165,233,0.32); --sheen: rgba(14,165,233,0.30); }
+  .btn-standings .btn-icon{ background:rgba(14,165,233,0.16); color:#0EA5E9; }
+  .btn-standings .btn-label{ color:#38BDF8; }
+
   footer{
     padding:32px 20px 0;
     text-align:center;
@@ -284,6 +288,15 @@
         <p>We are finally ready to launch the contest on Splash, please note that they have not provided me full control over the RULES section on Splash.  Check the bottom of this page for additional rule clarifications and FAQs.</p>
         <p>I will update registration spreadsheet when I can, but am traveling this weekend and updates will be delayed.  You are welcome to wait until week 2 to pay, and we are allowing drop outs after week 1 if you decide you don't like the new site.  Any questions, please reach out anytime treadhead10@hotmail.com</p>
       </div>
+
+      <a class="btn btn-standings" id="btnStandings" href="standings.png" target="_blank" rel="noopener">
+        <span class="btn-icon">🏆</span>
+        <span class="btn-text">
+          <span class="btn-label" id="btnStandingsLabel">Official Standings</span>
+          <span class="btn-sub">Season standings, updated weekly</span>
+        </span>
+        <span class="btn-arrow">→</span>
+      </a>
 
       <a class="btn btn-contest" id="btnContest" href="#" target="_blank" rel="noopener">
         <span class="btn-icon">🏈</span>
@@ -347,9 +360,10 @@
   // require touching this file.
   const DEFAULT_CONTENT = {
     welcomeMessage: "Welcome to the 22nd Annual FEPO Football Handicapping Challenge!",
+    officialStandings: { label: "Official Standings", url: "standings.png" },
     contestLink: {
       label: "Contest Link",
-      url: "https://https://contests.app.splashsports.com/contest/contest_01M1A00PX065DZMX805BAJ4YWA"
+      url: "https://contests.app.splashsports.com/contest/contest_01M1A00PX065DZMX805BAJ4YWA"
     },
     hanksAnalytics: { label: "Hanks Analytics" },
     registration: { label: "Registration Info", url: "registration.html" },
@@ -369,6 +383,10 @@
     }
 
     document.getElementById('welcomeText').textContent = data.welcomeMessage || DEFAULT_CONTENT.welcomeMessage;
+
+    const standings = data.officialStandings || DEFAULT_CONTENT.officialStandings;
+    document.getElementById('btnStandings').href = standings.url || 'standings.png';
+    document.getElementById('btnStandingsLabel').textContent = standings.label || 'Official Standings';
 
     const contest = data.contestLink || DEFAULT_CONTENT.contestLink;
     document.getElementById('btnContest').href = contest.url;

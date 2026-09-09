@@ -1,12 +1,15 @@
 {
   "welcomeMessage": "Welcome to the 22nd Annual FEPO Football Handicapping Challenge",
+  "officialStandings": {
+    "label": "OFFICIAL STANDINGS",
+    "url": "standings.png"
+  },
   "contestLink": {
     "label": "CONTEST LINK",
     "url": "https://contests.app.splashsports.com/contest/contest_01M1A00PX065DZMX805BAJ4YWA"
   },
   "hanksAnalytics": {
-    "label": "HANKS ANALYTICS",
-    "images": []
+    "label": "HANKS ANALYTICS"
   },
   "registration": {
     "label": "REGISTRATION INFO",
