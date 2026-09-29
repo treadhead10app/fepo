@@ -2,7 +2,7 @@
   "welcomeMessage": "Welcome to the 22nd Annual FEPO Football Handicapping Challenge",
   "officialStandings": {
     "label": "OFFICIAL STANDINGS",
-    "url": "standings.png"
+    "url": "./analytics/standings.png"
   },
   "contestLink": {
     "label": "CONTEST LINK",
