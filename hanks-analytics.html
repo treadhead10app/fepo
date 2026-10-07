@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hanks Analytics — FEPO Football Handicapping Challenge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -32,6 +32,51 @@
       repeating-linear-gradient(135deg, rgba(79,195,247,0.04) 0 10px, transparent 10px 20px);
     text-align:center;padding:20px;
   }
+
+  .card img{cursor:zoom-in;-webkit-tap-highlight-color:transparent}
+  .card .tap-hint{float:right;color:var(--teal);font-size:12px}
+
+  /* ---- full-screen image viewer ---- */
+  body.viewer-open{overflow:hidden}
+  .viewer{
+    position:fixed;inset:0;z-index:1000;display:none;flex-direction:column;
+    background:rgba(4,10,16,0.97);
+    padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px)
+            env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
+  }
+  .viewer.open{display:flex}
+  .viewer-bar{
+    display:flex;align-items:center;gap:10px;min-height:56px;padding:6px 10px;
+    border-bottom:1px solid var(--hairline);flex:0 0 auto;
+  }
+  .viewer-btn{
+    appearance:none;border:1px solid var(--hairline);background:var(--bg-elev);
+    color:var(--teal);font:600 16px 'Inter',sans-serif;border-radius:10px;
+    min-width:44px;height:44px;padding:0 12px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .viewer-btn:active{background:#123049}
+  .viewer-title{
+    flex:1 1 auto;min-width:0;color:var(--text);font-size:14px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .viewer-stage{
+    position:relative;flex:1 1 auto;overflow:hidden;touch-action:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .viewer-stage img{
+    max-width:100%;max-height:100%;user-select:none;-webkit-user-select:none;
+    -webkit-user-drag:none;transform-origin:center center;will-change:transform;
+    cursor:grab;
+  }
+  .viewer-stage img.dragging{cursor:grabbing}
+  .viewer-hint{
+    position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+    background:rgba(13,31,46,0.92);border:1px solid var(--hairline);
+    color:var(--text-muted);font-size:12px;padding:6px 12px;border-radius:999px;
+    pointer-events:none;transition:opacity .4s;white-space:nowrap;
+  }
 </style>
 </head>
 <body>
@@ -40,6 +85,20 @@
     <h1>Hanks Analytics</h1>
     <p class="sub">Weekly charts and breakdowns from Hank, updated every week.</p>
     <div class="grid" id="gallery"></div>
+  </div>
+
+  <!-- Full-screen viewer: tap any chart to open it here -->
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Chart viewer">
+    <div class="viewer-bar">
+      <button class="viewer-btn" id="viewerBack" aria-label="Back to all charts">&#8592; Back</button>
+      <div class="viewer-title" id="viewerTitle"></div>
+      <button class="viewer-btn" id="viewerOut" aria-label="Zoom out">&minus;</button>
+      <button class="viewer-btn" id="viewerIn" aria-label="Zoom in">+</button>
+    </div>
+    <div class="viewer-stage" id="viewerStage">
+      <img id="viewerImg" alt="" draggable="false">
+      <div class="viewer-hint" id="viewerHint">Pinch or double-tap to zoom</div>
+    </div>
   </div>
 <script>
   // Fixed manifest of chart slots. Hank reuses the same filename for a given
@@ -88,16 +147,164 @@
       placeholder.className = 'placeholder';
       placeholder.textContent = chart.label + ' — not posted yet';
       img.replaceWith(placeholder);
+      const h = card.querySelector('.tap-hint'); if (h) h.remove();
     };
+    img.addEventListener('click', () => openViewer(chart));
     card.appendChild(img);
 
     const label = document.createElement('div');
     label.className = 'card-label';
     label.textContent = chart.label;
+    const hint = document.createElement('span');
+    hint.className = 'tap-hint';
+    hint.textContent = 'Tap to enlarge';
+    label.appendChild(hint);
     card.appendChild(label);
 
     gallery.appendChild(card);
   });
+
+  // ---------- Full-screen viewer with pinch / double-tap / wheel zoom ----------
+  const viewer   = document.getElementById('viewer');
+  const stage    = document.getElementById('viewerStage');
+  const vImg     = document.getElementById('viewerImg');
+  const vTitle   = document.getElementById('viewerTitle');
+  const vHint    = document.getElementById('viewerHint');
+  const MIN = 1, MAX = 6;
+  let scale = 1, tx = 0, ty = 0;
+  let pushedState = false, hintTimer = null;
+  const pointers = new Map();          // active pointers: id -> {x, y}
+  let pinch = null;                    // {dist, mid} from the previous move
+  let lastTap = {t: 0, x: 0, y: 0};
+  let downAt = null;                   // where a single-pointer gesture began
+
+  function apply(){
+    vImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }
+  // Keep the image from being dragged off screen.
+  function clamp(){
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const w = vImg.clientWidth * scale, h = vImg.clientHeight * scale;
+    const mx = Math.max(0, (w - W) / 2), my = Math.max(0, (h - H) / 2);
+    tx = Math.min(mx, Math.max(-mx, tx));
+    ty = Math.min(my, Math.max(-my, ty));
+  }
+  // Stage coords measured from the stage's centre (where the image is centred).
+  function toStage(clientX, clientY){
+    const r = stage.getBoundingClientRect();
+    return {x: clientX - r.left - r.width / 2, y: clientY - r.top - r.height / 2};
+  }
+  // Zoom to newScale while keeping the point p (stage coords) fixed on screen.
+  function zoomAt(p, newScale){
+    newScale = Math.min(MAX, Math.max(MIN, newScale));
+    const k = newScale / scale;
+    tx = p.x - (p.x - tx) * k;
+    ty = p.y - (p.y - ty) * k;
+    scale = newScale;
+    if (scale === 1){ tx = 0; ty = 0; }
+    clamp(); apply();
+  }
+  function reset(){ scale = 1; tx = 0; ty = 0; apply(); }
+
+  function openViewer(chart){
+    vImg.src = chart.file;
+    vImg.alt = chart.label;
+    vTitle.textContent = chart.label;
+    reset();
+    viewer.classList.add('open');
+    document.body.classList.add('viewer-open');
+    // Phone/browser back button closes the viewer instead of leaving the page.
+    if (!pushedState){ history.pushState({viewer: true}, ''); pushedState = true; }
+    vHint.style.opacity = '1';
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => vHint.style.opacity = '0', 2500);
+    document.getElementById('viewerBack').focus({preventScroll: true});
+  }
+  function closeViewer(){
+    viewer.classList.remove('open');
+    document.body.classList.remove('viewer-open');
+    pointers.clear(); pinch = null;
+    reset();
+  }
+  // Back arrow: step back through history so the pushed entry is consumed.
+  document.getElementById('viewerBack').addEventListener('click', () => {
+    if (pushedState) history.back(); else closeViewer();
+  });
+  window.addEventListener('popstate', () => {
+    pushedState = false;
+    if (viewer.classList.contains('open')) closeViewer();
+  });
+  document.addEventListener('keydown', e => {
+    if (!viewer.classList.contains('open')) return;
+    if (e.key === 'Escape') document.getElementById('viewerBack').click();
+    if (e.key === '+' || e.key === '=') zoomAt({x: 0, y: 0}, scale * 1.5);
+    if (e.key === '-') zoomAt({x: 0, y: 0}, scale / 1.5);
+  });
+  document.getElementById('viewerIn').addEventListener('click',  () => zoomAt({x: 0, y: 0}, scale * 1.5));
+  document.getElementById('viewerOut').addEventListener('click', () => zoomAt({x: 0, y: 0}, scale / 1.5));
+
+  // Desktop: mouse wheel / trackpad zoom around the cursor.
+  stage.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoomAt(toStage(e.clientX, e.clientY), scale * Math.exp(-e.deltaY * 0.0015));
+  }, {passive: false});
+
+  stage.addEventListener('pointerdown', e => {
+    stage.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (pointers.size === 1){
+      downAt = {x: e.clientX, y: e.clientY, t: Date.now()};
+      if (scale > 1) vImg.classList.add('dragging');
+    } else {
+      downAt = null;                              // two fingers: not a tap
+      pinch = null;
+    }
+  });
+  stage.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) return;
+    const prev = pointers.get(e.pointerId);
+    pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (pointers.size >= 2){
+      const [a, b] = [...pointers.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const mid = toStage((a.x + b.x) / 2, (a.y + b.y) / 2);
+      if (pinch && pinch.dist > 0){
+        tx += mid.x - pinch.mid.x;                // follow the fingers
+        ty += mid.y - pinch.mid.y;
+        zoomAt(mid, scale * dist / pinch.dist);
+      }
+      pinch = {dist, mid};
+    } else if (scale > 1){
+      tx += e.clientX - prev.x;
+      ty += e.clientY - prev.y;
+      clamp(); apply();
+    }
+  });
+  function endPointer(e){
+    if (!pointers.has(e.pointerId)) return;
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinch = null;
+    if (pointers.size === 0) vImg.classList.remove('dragging');
+    // Double-tap / double-click: zoom in to 2.5x at that spot, or back out.
+    if (e.type === 'pointerup' && downAt && pointers.size === 0){
+      const moved = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y);
+      const now = Date.now();
+      if (moved < 10 && now - downAt.t < 300){
+        if (now - lastTap.t < 320 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40){
+          if (scale > 1) zoomAt({x: 0, y: 0}, 1);
+          else zoomAt(toStage(e.clientX, e.clientY), 2.5);
+          lastTap = {t: 0, x: 0, y: 0};
+        } else {
+          lastTap = {t: now, x: e.clientX, y: e.clientY};
+        }
+      }
+    }
+    if (pointers.size === 0) downAt = null;
+  }
+  stage.addEventListener('pointerup', endPointer);
+  stage.addEventListener('pointercancel', endPointer);
+  // Rotating the phone changes the fit size; re-clamp so nothing gets stuck off screen.
+  window.addEventListener('resize', () => { if (viewer.classList.contains('open')){ clamp(); apply(); } });
 </script>
 </body>
 </html>
